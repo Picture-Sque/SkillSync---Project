@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSync</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Updated to include the new 'Audiowide' font for the logo -->
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #030712; /* gray-950 */
+            background-image: radial-gradient(#1f2937 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        /* New class for the logo font */
+        .logo-font {
+            font-family: 'Audiowide', cursive;
+            background: linear-gradient(to right, #818cf8, #c4b5fd); /* indigo-400 to violet-300 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .loader {
+            border-top-color: #6366f1; /* indigo-500 */
+            animation: spinner 1.5s linear infinite;
+        }
+        .result-card-enter {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .progress-circle-bg { stroke: #374151; /* gray-700 */ }
+        .progress-circle-fg {
+            stroke: #6366f1; /* indigo-500 */
+            transition: stroke-dashoffset 1s ease-out;
+            filter: drop-shadow(0 0 3px rgba(99, 102, 241, 0.5));
+        }
+        #how-it-works-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        #chevron-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-300 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl mx-auto bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-2xl shadow-2xl shadow-indigo-500/10 p-8 space-y-8">
+        
+        <div class="text-center">
+            <!-- Applied the new logo class and increased font size -->
+            <h1 class="text-4xl font-bold logo-font">SkillSync</h1>
+            <p class="text-gray-400 mt-2">Sync your skills with the perfect job.</p>
+        </div>
+
+        <div id="main-content">
+            <form id="analyzer-form" class="space-y-6">
+                <!-- Resume Upload Section -->
+                <div>
+                    <label for="resume-file" class="block text-sm font-medium text-gray-300 mb-1">1. Upload Your Resume</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            <div class="flex text-sm text-gray-400"><label for="resume-file" class="relative cursor-pointer bg-gray-900 rounded-md font-medium text-indigo-400 hover:text-indigo-300"><span>Upload a file</span><input id="resume-file" name="resume" type="file" class="sr-only" accept=".pdf,.docx" required></label><p class="pl-1">or drag and drop</p></div>
+                            <p class="text-xs text-gray-500">PDF, DOCX up to 10MB</p>
+                            <p id="file-name" class="text-sm font-medium text-green-400 mt-2"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Description Text Area -->
+                <div>
+                    <label for="job-description" class="block text-sm font-medium text-gray-300">2. Paste Job Description</label>
+                    <textarea id="job-description" name="job_description" rows="8" class="bg-gray-800 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-600 rounded-md p-3 text-gray-200 placeholder-gray-500" placeholder="Paste the full job description here..." required></textarea>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">Analyze Now</button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="hidden">
+            <div id="loading-spinner" class="hidden mx-auto my-8 loader ease-linear rounded-full border-4 border-t-4 border-gray-700 h-12 w-12"></div>
+            <div id="result-content" class="space-y-8"></div>
+            <div id="error-message" class="hidden p-4 mt-4 text-sm text-red-300 bg-red-900/50 rounded-lg" role="alert"></div>
+        </div>
+    </div>
+    
+    <!-- "How It Works" Section -->
+    <div class="w-full max-w-3xl mx-auto mt-6 text-center">
+        <button id="toggle-how-it-works" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+            <span>How does this work?</span>
+            <svg id="chevron-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+        </button>
+        <div id="how-it-works-content" class="mt-4 bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg text-left">
+            <div class="p-6 space-y-3">
+                <p class="font-semibold text-white">This project is a full-stack application designed to provide intelligent feedback on resumes.</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-400">
+                    <li><strong class="text-gray-300">Backend:</strong> Built with Python and FastAPI, providing a high-performance API for all the analysis.</li>
+                    <li><strong class="text-gray-300">Natural Language Processing (NLP):</strong> We use the powerful <code class="text-sm bg-gray-700 px-1 rounded">spaCy</code> library to understand the text from both the resume and job description.</li>
+                    <li><strong class="text-gray-300">Analysis Process:</strong>
+                        <ul class="list-['-_'] list-inside ml-4 mt-1 space-y-1">
+                            <li>First, we extract the raw text from your PDF or DOCX file.</li>
+                            <li>Then, we calculate a semantic similarity score to determine the overall match percentage.</li>
+                            <li>We perform a Skill Gap Analysis by comparing an extensive list of hard and soft skills found in the job description against your resume.</li>
+                            <li>Finally, the system generates actionable tips based on common resume-writing best practices.</li>
+                        </ul>
+                    </li>
+                    <li><strong class="text-gray-300">Frontend:</strong> A responsive and modern user interface built with HTML, Tailwind CSS, and vanilla JavaScript.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Element References ---
+            const form = document.getElementById('analyzer-form');
+            const mainContent = document.getElementById('main-content');
+            const resumeFileInput = document.getElementById('resume-file');
+            const fileNameDisplay = document.getElementById('file-name');
+            const resultsSection = document.getElementById('results-section');
+            const resultContent = document.getElementById('result-content');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const errorMessage = document.getElementById('error-message');
+            const toggleHowItWorksBtn = document.getElementById('toggle-how-it-works');
+            const howItWorksContent = document.getElementById('how-it-works-content');
+            const chevronIcon = document.getElementById('chevron-icon');
+            
+            const apiUrl = 'https://skillsync-project.onrender.com/analyze'; // Replace with your actual API endpoint
+
+            // --- Event Listeners ---
+            resumeFileInput.addEventListener('change', () => {
+                fileNameDisplay.textContent = resumeFileInput.files.length > 0 ? resumeFileInput.files[0].name : '';
+            });
+
+            form.addEventListener('submit', handleFormSubmit);
+
+            toggleHowItWorksBtn.addEventListener('click', () => {
+                const isOpen = howItWorksContent.style.maxHeight && howItWorksContent.style.maxHeight !== '0px';
+                if (isOpen) {
+                    howItWorksContent.style.maxHeight = '0px';
+                    chevronIcon.style.transform = 'rotate(0deg)';
+                } else {
+                    howItWorksContent.style.maxHeight = howItWorksContent.scrollHeight + 'px';
+                    chevronIcon.style.transform = 'rotate(180deg)';
+                }
+            });
+
+            // --- Functions ---
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+                mainContent.classList.add('hidden');
+                resultsSection.classList.remove('hidden');
+                loadingSpinner.classList.remove('hidden');
+                resultContent.innerHTML = '';
+                errorMessage.classList.add('hidden');
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', body: formData });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    displayResult(result);
+                } catch (error) {
+                    displayError(error.message);
+                    console.error('Error:', error);
+                } finally {
+                    loadingSpinner.classList.add('hidden');
+                }
+            }
+            
+            function resetView() {
+                mainContent.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                resultContent.innerHTML = '';
+                form.reset();
+                fileNameDisplay.textContent = '';
+            }
+
+            function createSkillTag(skill, type) {
+                const icon = type === 'matched' 
+                    ? `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`
+                    : `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                const bgColor = type === 'matched' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300';
+                return `<span class="flex items-center text-sm font-medium px-3 py-1 rounded-full ${bgColor}">${icon}${skill}</span>`;
+            }
+            
+            function createTipCard(tip) {
+                 return `
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p>${tip}</p>
+                    </div>`;
+            }
+
+            function displayResult(data) {
+                const percentage = data.match_percentage;
+
+                const circumference = 2 * Math.PI * 54;
+                const offset = circumference - (percentage / 100) * circumference;
+                let strokeColor = '#4ade80'; // green-400
+                if (percentage < 50) strokeColor = '#f87171'; // red-400
+                else if (percentage < 75) strokeColor = '#facc15'; // yellow-400
+                const scoreCircleHtml = `
+                    <div class="relative w-40 h-40 mx-auto">
+                        <svg class="w-full h-full" viewBox="0 0 120 120">
+                            <circle class="progress-circle-bg" cx="60" cy="60" r="54" fill="none" stroke-width="12" />
+                            <circle class="progress-circle-fg" cx="60" cy="60" r="54" fill="none" stroke-width="12" stroke="${strokeColor}" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}" transform="rotate(-90 60 60)" style="stroke-dashoffset: ${offset};" />
+                        </svg>
+                        <span class="absolute inset-0 flex items-center justify-center text-3xl font-bold" style="color:${strokeColor}">${percentage}%</span>
+                    </div>`;
+                
+                const matchedSkillsHtml = data.matched_skills.length > 0 ? data.matched_skills.map(s => createSkillTag(s, 'matched')).join('') : `<p class="text-gray-400 text-sm">No specific skills from our list were found.</p>`;
+                const missingSkillsHtml = data.missing_skills.length > 0 ? data.missing_skills.map(s => createSkillTag(s, 'missing')).join('') : `<p class="text-gray-400 text-sm">No missing skills to highlight. Good job!</p>`;
+                const tipsHtml = data.resume_tips.length > 0 ? data.resume_tips.map(createTipCard).join('') : `<p class="text-gray-400 text-sm">Our automated check found no immediate areas for improvement.</p>`;
+
+                resultContent.innerHTML = `
+                    <div class="result-card-enter">
+                        <div class="text-center p-6 bg-gray-900/50 rounded-lg">
+                            <h2 class="text-xl font-semibold text-white">Analysis Complete</h2>
+                            ${scoreCircleHtml}
+                        </div>
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-900/50 p-4 rounded-lg">
+                                <h3 class="font-semibold text-white mb-3">Matched Skills</h3>
+                                <div class="flex flex-wrap gap-2">${matchedSkillsHtml}</div>
+                            </div>
+                            <div class="bg-gray-900/50 p-4 rounded-lg">
+                                <h3 class="font-semibold text-white mb-3">Missing Skills</h3>
+                                <div class="flex flex-wrap gap-2">${missingSkillsHtml}</div>
+                            </div>
+                        </div>
+                         <div class="mt-8 bg-gray-900/50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-white mb-3">Actionable Resume Tips</h3>
+                            <div class="space-y-3 text-gray-300">${tipsHtml}</div>
+                        </div>
+                        <div class="mt-8 text-center">
+                            <button id="reset-button" class="py-2 px-5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Analyze Another</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('reset-button').addEventListener('click', resetView);
+            }
+            
+            function displayError(message) {
+                errorMessage.textContent = `An error occurred: ${message}`;
+                errorMessage.classList.remove('hidden');
+                const resetButton = document.createElement('button');
+                resetButton.textContent = 'Try Again';
+                resetButton.className = 'mt-4 py-2 px-4 border rounded-md text-sm font-medium bg-gray-600 hover:bg-gray-500 text-white';
+                resetButton.onclick = resetView;
+                errorMessage.appendChild(resetButton);
+            }
+        });
+    </script>
+</body>
+</html>
+
